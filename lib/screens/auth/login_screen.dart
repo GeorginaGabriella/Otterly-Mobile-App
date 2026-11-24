@@ -3,6 +3,7 @@ import '../../core/app_colors.dart';
 import '../../widgets/otter_logo_widget.dart';
 import '../../widgets/social_background.dart';
 import '../../widgets/primary_button.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -56,6 +57,24 @@ class LoginScreen extends StatelessWidget {
                       ),
                     );
                   },
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Create an account',
+                    style: TextStyle(
+                      color: AppColors.burgundy,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
