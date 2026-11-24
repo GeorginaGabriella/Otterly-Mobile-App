@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_colors.dart';
-import '../../core/app_constants.dart';
 import '../../widgets/onboarding_indicator.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/social_background.dart';
