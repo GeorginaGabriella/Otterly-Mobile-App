@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/post_model.dart';
+import 'post_model.dart';
 
 class CreateEditPostScreen extends StatefulWidget {
   final PostModel? existingPost; // Null = Create mode, Non-null = Edit mode
