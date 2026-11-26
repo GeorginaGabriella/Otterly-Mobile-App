@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/app_colors.dart';
+import '../../core/app_constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/social_profile_provider.dart';
+import '../../widgets/media/post_composer_sheet.dart';
 import '../friends/friends_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
@@ -70,12 +72,44 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
             ),
 
       // Tampilkan HomeScreen Garini ketika tab Home dipilih,
+      // PostComposerSheet pada tab Create,
       // dan ProfileScreen Felicia ketika tab Profile dipilih.
       body: _selectedIndex == 0
           ? const HomeScreen()
-          : _selectedIndex == 4
-              ? const ProfileScreen(showAppBar: false)
-              : _buildPlaceholder(user),
+          : _selectedIndex == 2
+              ? PostComposerSheet(
+                  authorName: user?.fullName ?? 'Otter Friend',
+                  authorAvatar: user?.avatar ?? AppConstants.pinkAvatarPath,
+                  asFullPage: true,
+                  onPublish: (result) async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final activeUser = user ?? buildFallbackDemoUser();
+                    await ref
+                        .read(socialProfileProvider.notifier)
+                        .addProfilePost(
+                          author: activeUser,
+                          category: result.category,
+                          content: result.content,
+                          location: result.location,
+                          audience: result.audience,
+                          imagePaths: result.imagePaths,
+                          videoPath: result.videoPath,
+                        );
+                    if (!mounted) return;
+                    setState(() {
+                      _selectedIndex = 0;
+                    });
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Postingan berhasil dipublikasikan!'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  },
+                )
+              : _selectedIndex == 4
+                  ? const ProfileScreen(showAppBar: false)
+                  : _buildPlaceholder(user),
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

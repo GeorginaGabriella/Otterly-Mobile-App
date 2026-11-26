@@ -6,6 +6,7 @@ import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/social_profile_provider.dart';
 import '../../widgets/friends/mutual_friends_sheet_widget.dart';
+import '../../widgets/media/post_composer_sheet.dart';
 import '../../widgets/profile/profile_header_widget.dart';
 import '../../widgets/profile/profile_post_list_widget.dart';
 import '../../widgets/profile/profile_privacy_tile_widget.dart';
@@ -300,98 +301,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _showCreateProfilePostDialog(UserModel currentUser) async {
-    final contentController = TextEditingController();
-    String selectedCategory = 'Campus Life';
-    const categories = [
-      'General',
-      'Campus Life',
-      'Academic',
-      'Organization',
-      'Events',
-      'Promotion',
-    ];
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.background,
-          title: const Text(
-            'New Profile Post',
-            style: TextStyle(
-              color: AppColors.burgundy,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: contentController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText: 'Share a campus update...',
-                    filled: true,
-                    fillColor: AppColors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedCategory,
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: categories
-                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setDialogState(() => selectedCategory = value);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.pink,
-                foregroundColor: AppColors.white,
-                minimumSize: const Size(0, 40),
-              ),
-              onPressed: () async {
-                final text = contentController.text.trim();
-                if (text.isEmpty) return;
-                await ref.read(socialProfileProvider.notifier).addProfilePost(
-                      author: currentUser,
-                      category: selectedCategory,
-                      content: text,
-                    );
-                if (dialogContext.mounted) Navigator.pop(dialogContext);
-                if (mounted) {
-                  _showSnack(
-                    'Posted to your profile!',
-                    background: AppColors.success,
-                  );
-                }
-              },
-              child: const Text('Publish'),
-            ),
-          ],
-        ),
-      ),
+    final result = await PostComposerSheet.show(
+      context,
+      authorName: currentUser.fullName,
+      authorAvatar: currentUser.avatar,
     );
-    contentController.dispose();
+    if (result == null) return;
+
+    await ref.read(socialProfileProvider.notifier).addProfilePost(
+          author: currentUser,
+          category: result.category,
+          content: result.content,
+          location: result.location,
+          audience: result.audience,
+          imagePaths: result.imagePaths,
+          videoPath: result.videoPath,
+        );
+    if (mounted) {
+      _showSnack(
+        'Posted to your profile!',
+        background: AppColors.success,
+      );
+    }
   }
 
   Future<void> _confirmDeletePost(String postId) async {

@@ -9,9 +9,13 @@ import 'package:otterly/models/user_model.dart';
 import 'package:otterly/providers/auth_provider.dart';
 import 'package:otterly/providers/social_profile_provider.dart';
 import 'package:otterly/screens/friends/friends_screen.dart';
+import 'package:otterly/screens/home/home_screen.dart';
 import 'package:otterly/screens/navigation/main_navigation.dart';
 import 'package:otterly/screens/profile/edit_profile_screen.dart';
 import 'package:otterly/screens/profile/profile_screen.dart';
+import 'package:otterly/widgets/media/post_composer_sheet.dart';
+import 'package:otterly/widgets/media/post_media_gallery_widget.dart';
+import 'package:otterly/widgets/media/post_video_player_widget.dart';
 
 void main() {
   setUp(() {
@@ -260,6 +264,113 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ProfileScreen), findsOneWidget);
       expect(find.text('Student Information'), findsNothing);
+    });
+
+    testWidgets('PostMediaGalleryWidget & PostVideoPlayerWidget render Facebook-style media', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: const [
+                  PostMediaGalleryWidget(
+                    imagePaths: [
+                      'assets/images/onboarding/onboarding_1_welcome.png',
+                      'assets/images/onboarding/onboarding_2_connect.png',
+                      'assets/images/onboarding/onboarding_3_campus.png',
+                      'assets/images/otter_logo.png',
+                      'assets/images/otter_pink.png',
+                    ],
+                  ),
+                  SizedBox(height: 12),
+                  PostVideoPlayerWidget(
+                    videoPath: AppConstants.campusVideoPath,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 5 images shows 2x2 grid with +1 overlay badge.
+      expect(find.text('+1'), findsOneWidget);
+      expect(find.text('VIDEO'), findsOneWidget);
+
+      // Tap first image to open lightbox.
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byType(PostMediaGalleryWidget),
+              matching: find.byType(GestureDetector),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('1 / 5'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+
+      // Toggle fallback play/pause on video player without crash.
+      await tester.tap(find.byIcon(Icons.play_arrow_rounded).first);
+      await tester.pump();
+    });
+
+    testWidgets('PostComposerSheet supports attaching campus photos, video, and publishing', (tester) async {
+      PostComposerResult? captured;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PostComposerSheet(
+              authorName: 'Felicia Angeline',
+              asFullPage: true,
+              onPublish: (res) => captured = res,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byType(TextField).first,
+        'Sharing campus photos & video!',
+      );
+      await tester.tap(find.text('Campus Media'));
+      await tester.pumpAndSettle();
+      expect(find.text('Campus Media Gallery'), findsOneWidget);
+
+      await tester.tap(find.text('Otter.ly UNTAR Campus Reel (MP4)'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PostVideoPlayerWidget), findsOneWidget);
+
+      await tester.tap(find.text('Post'));
+      await tester.pumpAndSettle();
+
+      expect(captured, isNotNull);
+      expect(captured!.content, 'Sharing campus photos & video!');
+      expect(captured!.videoPath, AppConstants.campusVideoPath);
+    });
+
+    testWidgets('HomeScreen displays media posts and navigates Create tab', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: MainNavigation(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HomeScreen), findsOneWidget);
+
+      // Tap Create tab in bottom bar and confirm PostComposerSheet appears.
+      await tester.tap(find.text('Create'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PostComposerSheet), findsOneWidget);
+      expect(find.text('Campus Media'), findsOneWidget);
     });
 
     testWidgets('MainNavigation Profile tab renders ProfileScreen', (tester) async {

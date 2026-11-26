@@ -48,7 +48,7 @@ class SocialPrivacySettings {
 
 class SocialConnectionService {
   static const String _studentsKeyPrefix = 'otterly_social_students_';
-  static const String _postsKeyPrefix = 'otterly_social_posts_';
+  static const String _postsKeyPrefix = 'otterly_social_posts_v2_';
   static const String _privacyKeyPrefix = 'otterly_social_privacy_';
 
   Future<List<StudentProfileModel>> loadStudents(String userId) async {
@@ -380,6 +380,12 @@ class SocialConnectionService {
         isLiked: false,
         isSaved: false,
         isOwnPost: true,
+        location: 'Gedung Utama UNTAR',
+        audience: 'Public',
+        imagePaths: const [
+          'assets/images/onboarding/onboarding_3_campus.png',
+          'assets/images/onboarding/onboarding_2_connect.png',
+        ],
       ),
       ProfilePostItem(
         id: 'post_own_2',
@@ -389,13 +395,16 @@ class SocialConnectionService {
         faculty: currentUser.faculty,
         category: 'Campus Life',
         content:
-            'Selesai kelas Mobile Programming langsung nugas bareng tim Otter.ly di perpustakaan lantai 4. Semangat semuanya! 💻💗',
+            'Recap singkat kegiatan kampus dan serunya kolaborasi mahasiswa UNTAR di Otter.ly! 🎥💗',
         timeAgo: '1 day ago',
         likesCount: 31,
         commentsCount: 7,
         isLiked: true,
         isSaved: false,
         isOwnPost: true,
+        location: 'Perpustakaan UNTAR',
+        audience: 'Friends',
+        videoPath: AppConstants.campusVideoPath,
       ),
       const ProfilePostItem(
         id: 'post_stu_georgina_1',
@@ -412,6 +421,8 @@ class SocialConnectionService {
         isLiked: true,
         isSaved: true,
         isOwnPost: false,
+        location: 'Kampus 1 UNTAR',
+        audience: 'Public',
       ),
       const ProfilePostItem(
         id: 'post_stu_garini_1',
@@ -428,6 +439,9 @@ class SocialConnectionService {
         isLiked: false,
         isSaved: true,
         isOwnPost: false,
+        imagePaths: [
+          'assets/images/onboarding/onboarding_1_welcome.png',
+        ],
       ),
       const ProfilePostItem(
         id: 'post_stu_celine_1',
@@ -437,13 +451,19 @@ class SocialConnectionService {
         faculty: 'Faculty of Information Technology',
         category: 'Organization',
         content:
-            'Yuk ikut kegiatan organisasi kampus dan tambah pengalaman serta teman baru!',
+            'Yuk ikut kegiatan organisasi kampus dan tambah pengalaman serta teman baru! 📸✨',
         timeAgo: '1 hour ago',
         likesCount: 32,
         commentsCount: 12,
         isLiked: false,
         isSaved: false,
         isOwnPost: false,
+        location: 'Selasar Gedung M',
+        imagePaths: [
+          'assets/images/onboarding/onboarding_2_connect.png',
+          'assets/images/onboarding/onboarding_3_campus.png',
+          'assets/images/otter_logo.png',
+        ],
       ),
       const ProfilePostItem(
         id: 'post_stu_nadia_1',

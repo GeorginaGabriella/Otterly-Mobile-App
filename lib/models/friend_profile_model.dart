@@ -218,6 +218,10 @@ class ProfilePostItem {
   final bool isLiked;
   final bool isSaved;
   final bool isOwnPost;
+  final List<String> imagePaths;
+  final String? videoPath;
+  final String? location;
+  final String audience;
 
   const ProfilePostItem({
     required this.id,
@@ -233,6 +237,10 @@ class ProfilePostItem {
     this.isLiked = false,
     this.isSaved = false,
     this.isOwnPost = false,
+    this.imagePaths = const [],
+    this.videoPath,
+    this.location,
+    this.audience = 'Public',
   });
 
   ProfilePostItem copyWith({
@@ -249,6 +257,12 @@ class ProfilePostItem {
     bool? isLiked,
     bool? isSaved,
     bool? isOwnPost,
+    List<String>? imagePaths,
+    String? videoPath,
+    bool clearVideoPath = false,
+    String? location,
+    bool clearLocation = false,
+    String? audience,
   }) {
     return ProfilePostItem(
       id: id ?? this.id,
@@ -264,6 +278,10 @@ class ProfilePostItem {
       isLiked: isLiked ?? this.isLiked,
       isSaved: isSaved ?? this.isSaved,
       isOwnPost: isOwnPost ?? this.isOwnPost,
+      imagePaths: imagePaths ?? this.imagePaths,
+      videoPath: clearVideoPath ? null : (videoPath ?? this.videoPath),
+      location: clearLocation ? null : (location ?? this.location),
+      audience: audience ?? this.audience,
     );
   }
 
@@ -282,6 +300,10 @@ class ProfilePostItem {
       'isLiked': isLiked,
       'isSaved': isSaved,
       'isOwnPost': isOwnPost,
+      'imagePaths': imagePaths,
+      'videoPath': videoPath,
+      'location': location,
+      'audience': audience,
     };
   }
 
@@ -300,6 +322,12 @@ class ProfilePostItem {
       isLiked: json['isLiked'] as bool? ?? false,
       isSaved: json['isSaved'] as bool? ?? false,
       isOwnPost: json['isOwnPost'] as bool? ?? false,
+      imagePaths: List<String>.from(
+        json['imagePaths'] as List<dynamic>? ?? const [],
+      ),
+      videoPath: json['videoPath'] as String?,
+      location: json['location'] as String?,
+      audience: json['audience'] as String? ?? 'Public',
     );
   }
 }

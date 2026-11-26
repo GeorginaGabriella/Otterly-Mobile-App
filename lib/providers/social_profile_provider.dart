@@ -364,6 +364,10 @@ class SocialProfileNotifier extends Notifier<SocialProfileState> {
     required UserModel author,
     required String category,
     required String content,
+    String? location,
+    String audience = 'Public',
+    List<String> imagePaths = const [],
+    String? videoPath,
   }) async {
     final newPost = ProfilePostItem(
       id: 'post_${DateTime.now().microsecondsSinceEpoch}',
@@ -379,6 +383,10 @@ class SocialProfileNotifier extends Notifier<SocialProfileState> {
       isLiked: false,
       isSaved: false,
       isOwnPost: true,
+      location: location,
+      audience: audience,
+      imagePaths: imagePaths,
+      videoPath: videoPath,
     );
     await _updatePosts([newPost, ...state.posts]);
   }

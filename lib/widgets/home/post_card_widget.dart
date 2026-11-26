@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../media/post_media_gallery_widget.dart';
+import '../media/post_video_player_widget.dart';
 
 class PostCardWidget extends StatelessWidget {
   final String userName;
@@ -10,6 +12,10 @@ class PostCardWidget extends StatelessWidget {
   final int commentCount;
   final bool isLiked;
   final bool isSaved;
+  final List<String> imagePaths;
+  final String? videoPath;
+  final String? location;
+  final String audience;
   final VoidCallback onLike;
   final VoidCallback onComment;
   final VoidCallback onShare;
@@ -26,6 +32,10 @@ class PostCardWidget extends StatelessWidget {
     required this.commentCount,
     required this.isLiked,
     required this.isSaved,
+    this.imagePaths = const [],
+    this.videoPath,
+    this.location,
+    this.audience = 'Public',
     required this.onLike,
     required this.onComment,
     required this.onShare,
@@ -63,12 +73,39 @@ class PostCardWidget extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '$faculty • $time',
+                      '$faculty • $time • $audience',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 11,
                         color: Color(0xFF8B7479),
                       ),
                     ),
+                    if (location != null && location!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 12,
+                            color: Color(0xFFE23C64),
+                          ),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              location!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFFB0183D),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -119,6 +156,16 @@ class PostCardWidget extends StatelessWidget {
               color: Color(0xFF38252A),
             ),
           ),
+
+          if (imagePaths.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            PostMediaGalleryWidget(imagePaths: imagePaths),
+          ],
+
+          if (videoPath != null && videoPath!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            PostVideoPlayerWidget(videoPath: videoPath!),
+          ],
 
           const Divider(height: 25, color: Color(0xFFF3D9D5)),
 

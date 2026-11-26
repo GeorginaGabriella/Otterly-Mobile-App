@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../models/friend_profile_model.dart';
+import '../media/post_media_gallery_widget.dart';
+import '../media/post_video_player_widget.dart';
 
 class ProfilePostListWidget extends StatelessWidget {
   final List<ProfilePostItem> myPosts;
@@ -211,7 +213,7 @@ class ProfilePostListWidget extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${post.faculty} • ${post.timeAgo}',
+                      '${post.faculty} • ${post.timeAgo} • ${post.audience}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -219,6 +221,31 @@ class ProfilePostListWidget extends StatelessWidget {
                         color: AppColors.textSecondary,
                       ),
                     ),
+                    if (post.location != null && post.location!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 12,
+                            color: AppColors.pink,
+                          ),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              post.location!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.burgundy,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -259,6 +286,14 @@ class ProfilePostListWidget extends StatelessWidget {
               color: AppColors.textDark,
             ),
           ),
+          if (post.imagePaths.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            PostMediaGalleryWidget(imagePaths: post.imagePaths),
+          ],
+          if (post.videoPath != null && post.videoPath!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            PostVideoPlayerWidget(videoPath: post.videoPath!),
+          ],
           const Divider(height: 22, color: AppColors.border),
           Row(
             children: [
