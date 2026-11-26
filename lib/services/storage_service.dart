@@ -33,6 +33,17 @@ class StorageService {
     await prefs.setString(_usersKey, encoded);
   }
 
+  Future<void> updateUser(UserModel updatedUser) async {
+    final users = await getUsers();
+    final index = users.indexWhere((user) => user.id == updatedUser.id);
+    if (index >= 0) {
+      users[index] = updatedUser;
+    } else {
+      users.add(updatedUser);
+    }
+    await saveUsers(users);
+  }
+
   Future<void> saveSession(String userId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_sessionKey, userId);

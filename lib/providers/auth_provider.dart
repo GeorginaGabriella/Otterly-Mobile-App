@@ -1,20 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/storage_service.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService();
+});
+
+final storageServiceProvider = Provider<StorageService>((ref) {
+  return StorageService();
 });
 
 final authProvider =
     NotifierProvider<AuthNotifier, UserModel?>(AuthNotifier.new);
 
 class AuthNotifier extends Notifier<UserModel?> {
-  late final AuthService _authService;
+  AuthService get _authService => ref.read(authServiceProvider);
+  StorageService get _storageService => ref.read(storageServiceProvider);
 
   @override
   UserModel? build() {
-    _authService = ref.read(authServiceProvider);
     return null;
   }
 
@@ -62,5 +67,10 @@ class AuthNotifier extends Notifier<UserModel?> {
   Future<void> logout() async {
     await _authService.logout();
     state = null;
+  }
+
+  Future<void> updateProfile(UserModel updatedUser) async {
+    await _storageService.updateUser(updatedUser);
+    state = updatedUser;
   }
 }
