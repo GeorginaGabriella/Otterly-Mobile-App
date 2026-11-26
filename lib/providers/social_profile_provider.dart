@@ -396,6 +396,31 @@ class SocialProfileNotifier extends Notifier<SocialProfileState> {
     await _updatePosts(updated);
   }
 
+  Future<void> updateProfilePost({
+    required String postId,
+    required String category,
+    required String content,
+    String? location,
+    String audience = 'Public',
+    List<String> imagePaths = const [],
+    String? videoPath,
+  }) async {
+    final updated = state.posts.map((post) {
+      if (post.id != postId) return post;
+      return post.copyWith(
+        category: category,
+        content: content.trim(),
+        location: location,
+        clearLocation: location == null || location.isEmpty,
+        audience: audience,
+        imagePaths: imagePaths,
+        videoPath: videoPath,
+        clearVideoPath: videoPath == null || videoPath.isEmpty,
+      );
+    }).toList();
+    await _updatePosts(updated);
+  }
+
   void updateSearchQuery(String query) {
     state = state.copyWith(searchQuery: query);
   }

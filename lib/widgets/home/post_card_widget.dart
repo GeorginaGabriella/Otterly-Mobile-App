@@ -20,6 +20,8 @@ class PostCardWidget extends StatelessWidget {
   final VoidCallback onComment;
   final VoidCallback onShare;
   final VoidCallback onSave;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const PostCardWidget({
     super.key,
@@ -40,6 +42,8 @@ class PostCardWidget extends StatelessWidget {
     required this.onComment,
     required this.onShare,
     required this.onSave,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -113,6 +117,8 @@ class PostCardWidget extends StatelessWidget {
                 onSelected: (value) {
                   if (value == 'share') onShare();
                   if (value == 'save') onSave();
+                  if (value == 'edit') onEdit?.call();
+                  if (value == 'delete') onDelete?.call();
                 },
                 itemBuilder: (context) => [
                   const PopupMenuItem(
@@ -123,6 +129,19 @@ class PostCardWidget extends StatelessWidget {
                     value: 'save',
                     child: Text(isSaved ? 'Unsave post' : 'Save post'),
                   ),
+                  if (onEdit != null)
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Text('Edit post'),
+                    ),
+                  if (onDelete != null)
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text(
+                        'Delete post',
+                        style: TextStyle(color: Color(0xFFCC334D)),
+                      ),
+                    ),
                 ],
               ),
             ],

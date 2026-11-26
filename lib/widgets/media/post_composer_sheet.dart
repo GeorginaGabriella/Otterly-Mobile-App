@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_constants.dart';
+import '../../models/friend_profile_model.dart';
 import 'post_image_view.dart';
 import 'post_video_player_widget.dart';
 
@@ -27,6 +28,9 @@ class PostComposerSheet extends StatefulWidget {
   final String authorName;
   final String authorAvatar;
   final String initialCategory;
+  final ProfilePostItem? initialPost;
+  final bool initialShowLocation;
+  final bool initialOpenCampusMedia;
   final bool asFullPage;
   final ValueChanged<PostComposerResult>? onPublish;
 
@@ -35,6 +39,9 @@ class PostComposerSheet extends StatefulWidget {
     required this.authorName,
     this.authorAvatar = AppConstants.pinkAvatarPath,
     this.initialCategory = 'Campus Life',
+    this.initialPost,
+    this.initialShowLocation = false,
+    this.initialOpenCampusMedia = false,
     this.asFullPage = false,
     this.onPublish,
   });
@@ -44,6 +51,9 @@ class PostComposerSheet extends StatefulWidget {
     required String authorName,
     String authorAvatar = AppConstants.pinkAvatarPath,
     String initialCategory = 'Campus Life',
+    ProfilePostItem? initialPost,
+    bool initialShowLocation = false,
+    bool initialOpenCampusMedia = false,
   }) {
     return showModalBottomSheet<PostComposerResult>(
       context: context,
@@ -57,6 +67,9 @@ class PostComposerSheet extends StatefulWidget {
         authorName: authorName,
         authorAvatar: authorAvatar,
         initialCategory: initialCategory,
+        initialPost: initialPost,
+        initialShowLocation: initialShowLocation,
+        initialOpenCampusMedia: initialOpenCampusMedia,
       ),
     );
   }
@@ -75,6 +88,8 @@ class _PostComposerSheetState extends State<PostComposerSheet> {
   bool _showLocationField = false;
   final List<String> _imagePaths = [];
   String? _videoPath;
+
+  bool get _isEditing => widget.initialPost != null;
 
   static const List<String> _categories = [
     'General',
@@ -98,9 +113,32 @@ class _PostComposerSheetState extends State<PostComposerSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedCategory = _categories.contains(widget.initialCategory)
-        ? widget.initialCategory
-        : 'Campus Life';
+    final existing = widget.initialPost;
+    if (existing != null) {
+      _contentController.text = existing.content;
+      _selectedCategory = _categories.contains(existing.category)
+          ? existing.category
+          : 'Campus Life';
+      _selectedAudience = _audiences.contains(existing.audience)
+          ? existing.audience
+          : 'Public';
+      if (existing.location != null && existing.location!.isNotEmpty) {
+        _locationController.text = existing.location!;
+        _showLocationField = true;
+      }
+      _imagePaths.addAll(existing.imagePaths);
+      _videoPath = existing.videoPath;
+    } else {
+      _selectedCategory = _categories.contains(widget.initialCategory)
+          ? widget.initialCategory
+          : 'Campus Life';
+      _showLocationField = widget.initialShowLocation;
+      if (widget.initialOpenCampusMedia) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _showSampleMediaPicker();
+        });
+      }
+    }
   }
 
   @override
@@ -496,10 +534,10 @@ class _PostComposerSheetState extends State<PostComposerSheet> {
                       color: AppColors.burgundy,
                     ),
                   ),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Create Post',
-                    style: TextStyle(
+                    _isEditing ? 'Edit Post' : 'Create Post',
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.burgundy,
@@ -516,7 +554,7 @@ class _PostComposerSheetState extends State<PostComposerSheet> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Post'),
+                  child: Text(_isEditing ? 'Update' : 'Post'),
                 ),
               ],
             ),

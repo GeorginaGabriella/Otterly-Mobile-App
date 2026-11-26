@@ -325,6 +325,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  Future<void> _editProfilePost(
+    UserModel currentUser,
+    ProfilePostItem post,
+  ) async {
+    final result = await PostComposerSheet.show(
+      context,
+      authorName: currentUser.fullName,
+      authorAvatar: currentUser.avatar,
+      initialPost: post,
+    );
+    if (result == null) return;
+
+    await ref.read(socialProfileProvider.notifier).updateProfilePost(
+          postId: post.id,
+          category: result.category,
+          content: result.content,
+          location: result.location,
+          audience: result.audience,
+          imagePaths: result.imagePaths,
+          videoPath: result.videoPath,
+        );
+    if (mounted) {
+      _showSnack(
+        'Post updated!',
+        background: AppColors.success,
+      );
+    }
+  }
+
   Future<void> _confirmDeletePost(String postId) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -600,6 +629,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onTabChanged: (index) => setState(() => _selectedPostTab = index),
             onToggleLike: ref.read(socialProfileProvider.notifier).togglePostLike,
             onToggleSave: ref.read(socialProfileProvider.notifier).togglePostSave,
+            onEditPost: (post) => _editProfilePost(currentUser, post),
             onDeletePost: _confirmDeletePost,
             onCreatePost: () => _showCreateProfilePostDialog(currentUser),
             showSavedTab: true,

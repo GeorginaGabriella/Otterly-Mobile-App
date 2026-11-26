@@ -11,6 +11,7 @@ class ProfilePostListWidget extends StatelessWidget {
   final ValueChanged<int> onTabChanged;
   final ValueChanged<String> onToggleLike;
   final ValueChanged<String> onToggleSave;
+  final ValueChanged<ProfilePostItem>? onEditPost;
   final ValueChanged<String>? onDeletePost;
   final VoidCallback? onCreatePost;
   final bool showSavedTab;
@@ -24,6 +25,7 @@ class ProfilePostListWidget extends StatelessWidget {
     required this.onTabChanged,
     required this.onToggleLike,
     required this.onToggleSave,
+    this.onEditPost,
     this.onDeletePost,
     this.onCreatePost,
     this.showSavedTab = true,
@@ -249,15 +251,32 @@ class ProfilePostListWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              if (post.isOwnPost && onDeletePost != null)
-                IconButton(
-                  tooltip: 'Delete post',
+              if (post.isOwnPost && (onEditPost != null || onDeletePost != null))
+                PopupMenuButton<String>(
                   icon: const Icon(
-                    Icons.delete_outline_rounded,
+                    Icons.more_horiz_rounded,
                     size: 20,
                     color: AppColors.textSecondary,
                   ),
-                  onPressed: () => onDeletePost!(post.id),
+                  onSelected: (value) {
+                    if (value == 'edit') onEditPost?.call(post);
+                    if (value == 'delete') onDeletePost?.call(post.id);
+                  },
+                  itemBuilder: (context) => [
+                    if (onEditPost != null)
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Text('Edit Post'),
+                      ),
+                    if (onDeletePost != null)
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                          'Delete Post',
+                          style: TextStyle(color: AppColors.error),
+                        ),
+                      ),
+                  ],
                 ),
             ],
           ),

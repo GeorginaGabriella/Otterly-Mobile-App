@@ -365,12 +365,61 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.text('Photo'), findsOneWidget);
+      expect(find.text('Video'), findsOneWidget);
+      expect(find.text('Location'), findsOneWidget);
 
       // Tap Create tab in bottom bar and confirm PostComposerSheet appears.
       await tester.tap(find.text('Create'));
       await tester.pumpAndSettle();
       expect(find.byType(PostComposerSheet), findsOneWidget);
       expect(find.text('Campus Media'), findsOneWidget);
+    });
+
+    testWidgets('PostComposerSheet supports editing an existing media post', (tester) async {
+      PostComposerResult? updated;
+      const existing = ProfilePostItem(
+        id: 'p_edit',
+        authorId: 'u1',
+        authorName: 'Felicia Angeline',
+        authorAvatar: AppConstants.pinkAvatarPath,
+        faculty: 'Faculty of Information Technology',
+        category: 'Events',
+        content: 'Old caption',
+        timeAgo: '1h ago',
+        location: 'Gedung Utama UNTAR',
+        audience: 'Friends',
+        imagePaths: ['assets/images/onboarding/onboarding_1_welcome.png'],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PostComposerSheet(
+              authorName: 'Felicia Angeline',
+              initialPost: existing,
+              asFullPage: true,
+              onPublish: (res) => updated = res,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit Post'), findsOneWidget);
+      expect(find.text('Update'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Old caption'),
+        'Updated caption with photo!',
+      );
+      await tester.tap(find.text('Update'));
+      await tester.pumpAndSettle();
+
+      expect(updated, isNotNull);
+      expect(updated!.content, 'Updated caption with photo!');
+      expect(updated!.imagePaths, existing.imagePaths);
+      expect(updated!.location, 'Gedung Utama UNTAR');
     });
 
     testWidgets('MainNavigation Profile tab renders ProfileScreen', (tester) async {

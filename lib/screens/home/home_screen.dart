@@ -81,13 +81,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Future<void> _createPost() async {
+  Future<void> _createPost({
+    bool openCampusMedia = false,
+    bool showLocation = false,
+  }) async {
     final currentUser = ref.read(authProvider) ?? buildFallbackDemoUser();
     final result = await PostComposerSheet.show(
       context,
       authorName: currentUser.fullName,
       authorAvatar: currentUser.avatar,
       initialCategory: selectedCategory == 'All' ? 'General' : selectedCategory,
+      initialOpenCampusMedia: openCampusMedia,
+      initialShowLocation: showLocation,
     );
 
     if (result == null) return;
@@ -111,6 +116,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       const SnackBar(
         content: Text('Postingan berhasil dibuat!'),
       ),
+    );
+  }
+
+  Future<void> _editPost(ProfilePostItem post) async {
+    final currentUser = ref.read(authProvider) ?? buildFallbackDemoUser();
+    final result = await PostComposerSheet.show(
+      context,
+      authorName: currentUser.fullName,
+      authorAvatar: currentUser.avatar,
+      initialPost: post,
+    );
+    if (result == null) return;
+
+    await ref.read(socialProfileProvider.notifier).updateProfilePost(
+          postId: post.id,
+          category: result.category,
+          content: result.content,
+          location: result.location,
+          audience: result.audience,
+          imagePaths: result.imagePaths,
+          videoPath: result.videoPath,
+        );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Postingan berhasil diperbarui!')),
+    );
+  }
+
+  Future<void> _deletePost(String postId) async {
+    await ref.read(socialProfileProvider.notifier).deleteProfilePost(postId);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Postingan dihapus.')),
     );
   }
 
@@ -357,6 +395,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               CreatePostShortcutWidget(
                 userName: displayName,
                 onTap: _createPost,
+                onPhotoTap: () => _createPost(openCampusMedia: true),
+                onVideoTap: () => _createPost(openCampusMedia: true),
+                onLocationTap: () => _createPost(showLocation: true),
               ),
 
               const SizedBox(height: 22),
@@ -505,6 +546,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       onComment: () => _showComments(post),
                       onShare: () => _sharePost(post),
                       onSave: () => _toggleSave(post),
+                      onEdit: post.isOwnPost ? () => _editPost(post) : null,
+                      onDelete:
+                          post.isOwnPost ? () => _deletePost(post.id) : null,
                     ),
                   );
                 }),
