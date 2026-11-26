@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/app_colors.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/social_profile_provider.dart';
+import '../friends/friends_screen.dart';
 import '../home/home_screen.dart';
+import '../profile/profile_screen.dart';
 
 class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
@@ -53,7 +56,8 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                 ),
               ),
               actions: [
-                if (_selectedIndex == 4)
+                if (_selectedIndex == 4) ...[
+                  _buildFriendsButton(),
                   IconButton(
                     icon: const Icon(
                       Icons.logout_rounded,
@@ -61,11 +65,17 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                     ),
                     onPressed: _showLogoutDialog,
                   ),
+                ],
               ],
             ),
 
-      // Tampilkan HomeScreen Garini ketika tab Home dipilih.
-      body: _selectedIndex == 0 ? const HomeScreen() : _buildPlaceholder(user),
+      // Tampilkan HomeScreen Garini ketika tab Home dipilih,
+      // dan ProfileScreen Felicia ketika tab Profile dipilih.
+      body: _selectedIndex == 0
+          ? const HomeScreen()
+          : _selectedIndex == 4
+              ? const ProfileScreen(showAppBar: false)
+              : _buildPlaceholder(user),
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
@@ -104,6 +114,56 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
             icon: Icon(Icons.person_outline_rounded),
             label: 'Profile',
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFriendsButton() {
+    final pendingCount =
+        ref.watch(socialProfileProvider).incomingRequests.length;
+
+    return IconButton(
+      tooltip: 'Friends & Requests',
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FriendsScreen(
+              initialTabIndex: pendingCount > 0 ? 1 : 0,
+            ),
+          ),
+        );
+      },
+      icon: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Icon(
+            Icons.people_outline_rounded,
+            color: AppColors.burgundy,
+          ),
+          if (pendingCount > 0)
+            Positioned(
+              right: -4,
+              top: -4,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: const BoxDecoration(
+                  color: AppColors.pink,
+                  shape: BoxShape.circle,
+                ),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                child: Text(
+                  '$pendingCount',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
