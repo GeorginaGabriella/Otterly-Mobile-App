@@ -183,63 +183,124 @@ class ProfilePostListWidget extends StatelessWidget {
   }
 
   Widget _buildPostCard(BuildContext context, ProfilePostItem post) {
+    final audienceIcon = post.audience == 'Friends'
+        ? Icons.people_outline_rounded
+        : post.audience == 'Only Me'
+            ? Icons.lock_outline_rounded
+            : Icons.public;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(15),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.burgundy.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.cream,
-                backgroundImage: AssetImage(post.authorAvatar),
+              Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.cream,
+                  backgroundImage: AssetImage(post.authorAvatar),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      post.authorName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13.5,
-                        color: AppColors.textDark,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            post.authorName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.cream,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            post.category,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.burgundy,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${post.faculty} • ${post.timeAgo} • ${post.audience}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            '${post.faculty} • ${post.timeAgo}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Icon(
+                          audienceIcon,
+                          size: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
                     ),
                     if (post.location != null && post.location!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Row(
                         children: [
                           const Icon(
                             Icons.location_on_outlined,
-                            size: 12,
+                            size: 13,
                             color: AppColors.pink,
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: 3),
                           Expanded(
                             child: Text(
                               post.location!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontSize: 11,
+                                fontSize: 11.5,
                                 color: AppColors.burgundy,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -253,6 +314,8 @@ class ProfilePostListWidget extends StatelessWidget {
               ),
               if (post.isOwnPost && (onEditPost != null || onDeletePost != null))
                 PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   icon: const Icon(
                     Icons.more_horiz_rounded,
                     size: 20,
@@ -280,28 +343,12 @@ class ProfilePostListWidget extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.cream,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Text(
-              post.category,
-              style: const TextStyle(
-                fontSize: 10.5,
-                fontWeight: FontWeight.bold,
-                color: AppColors.burgundy,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             post.content,
             style: const TextStyle(
-              fontSize: 13.5,
-              height: 1.45,
+              fontSize: 14,
+              height: 1.5,
               color: AppColors.textDark,
             ),
           ),
@@ -313,7 +360,8 @@ class ProfilePostListWidget extends StatelessWidget {
             const SizedBox(height: 12),
             PostVideoPlayerWidget(videoPath: post.videoPath!),
           ],
-          const Divider(height: 22, color: AppColors.border),
+          const SizedBox(height: 10),
+          const Divider(height: 14, color: AppColors.border),
           Row(
             children: [
               InkWell(
@@ -321,8 +369,8 @@ class ProfilePostListWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 4,
+                    horizontal: 8,
+                    vertical: 6,
                   ),
                   child: Row(
                     children: [
@@ -335,11 +383,12 @@ class ProfilePostListWidget extends StatelessWidget {
                             ? AppColors.pink
                             : AppColors.textSecondary,
                       ),
-                      const SizedBox(width: 5),
+                      const SizedBox(width: 6),
                       Text(
                         '${post.likesCount}',
                         style: const TextStyle(
                           fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.textDark,
                         ),
                       ),
@@ -348,22 +397,26 @@ class ProfilePostListWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.chat_bubble_outline_rounded,
-                    size: 18,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    '${post.commentsCount}',
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      color: AppColors.textDark,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 18,
+                      color: AppColors.textSecondary,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Text(
+                      '${post.commentsCount}',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const Spacer(),
               IconButton(

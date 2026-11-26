@@ -780,7 +780,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     if (!widget.showAppBar) {
-      return body;
+      return Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 620),
+          child: body,
+        ),
+      );
     }
 
     return Scaffold(
@@ -795,7 +801,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
       ),
-      body: body,
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 620),
+          child: body,
+        ),
+      ),
     );
   }
 }

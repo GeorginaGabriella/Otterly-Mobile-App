@@ -24,6 +24,7 @@ class PostMediaGalleryWidget extends StatelessWidget {
   Widget _buildTile(
     BuildContext context, {
     required int index,
+    BoxFit fit = BoxFit.cover,
     int? extraCountOverlay,
   }) {
     final path = imagePaths[index];
@@ -32,7 +33,7 @@ class PostMediaGalleryWidget extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          PostImageView(path: path, fit: BoxFit.cover),
+          PostImageView(path: path, fit: fit),
           if (extraCountOverlay != null && extraCountOverlay > 0)
             Container(
               color: Colors.black.withValues(alpha: 0.55),
@@ -62,6 +63,7 @@ class PostMediaGalleryWidget extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       child: Container(
         decoration: BoxDecoration(
+          color: AppColors.cream.withValues(alpha: 0.45),
           border: Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(14),
         ),
@@ -72,79 +74,95 @@ class PostMediaGalleryWidget extends StatelessWidget {
 
   Widget _buildLayout(BuildContext context) {
     if (imagePaths.length == 1) {
-      return SizedBox(
-        height: 230,
-        width: double.infinity,
-        child: _buildTile(context, index: 0),
+      final isAsset = imagePaths.first.startsWith('assets/');
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 340),
+        child: AspectRatio(
+          aspectRatio: 4 / 3,
+          child: _buildTile(
+            context,
+            index: 0,
+            fit: isAsset ? BoxFit.contain : BoxFit.cover,
+          ),
+        ),
       );
     }
 
     if (imagePaths.length == 2) {
-      return SizedBox(
-        height: 200,
-        child: Row(
-          children: [
-            Expanded(child: _buildTile(context, index: 0)),
-            const SizedBox(width: 3),
-            Expanded(child: _buildTile(context, index: 1)),
-          ],
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 300),
+        child: AspectRatio(
+          aspectRatio: 2 / 1,
+          child: Row(
+            children: [
+              Expanded(child: _buildTile(context, index: 0)),
+              const SizedBox(width: 3),
+              Expanded(child: _buildTile(context, index: 1)),
+            ],
+          ),
         ),
       );
     }
 
     if (imagePaths.length == 3) {
-      return SizedBox(
-        height: 220,
-        child: Row(
-          children: [
-            Expanded(flex: 3, child: _buildTile(context, index: 0)),
-            const SizedBox(width: 3),
-            Expanded(
-              flex: 2,
-              child: Column(
-                children: [
-                  Expanded(child: _buildTile(context, index: 1)),
-                  const SizedBox(height: 3),
-                  Expanded(child: _buildTile(context, index: 2)),
-                ],
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 340),
+        child: AspectRatio(
+          aspectRatio: 3 / 2,
+          child: Row(
+            children: [
+              Expanded(flex: 2, child: _buildTile(context, index: 0)),
+              const SizedBox(width: 3),
+              Expanded(
+                flex: 1,
+                child: Column(
+                  children: [
+                    Expanded(child: _buildTile(context, index: 1)),
+                    const SizedBox(height: 3),
+                    Expanded(child: _buildTile(context, index: 2)),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
 
     final extraCount = imagePaths.length - 4;
-    return SizedBox(
-      height: 230,
-      child: Column(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(child: _buildTile(context, index: 0)),
-                const SizedBox(width: 3),
-                Expanded(child: _buildTile(context, index: 1)),
-              ],
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 360),
+      child: AspectRatio(
+        aspectRatio: 4 / 3,
+        child: Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(child: _buildTile(context, index: 0)),
+                  const SizedBox(width: 3),
+                  Expanded(child: _buildTile(context, index: 1)),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 3),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(child: _buildTile(context, index: 2)),
-                const SizedBox(width: 3),
-                Expanded(
-                  child: _buildTile(
-                    context,
-                    index: 3,
-                    extraCountOverlay: extraCount,
+            const SizedBox(height: 3),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(child: _buildTile(context, index: 2)),
+                  const SizedBox(width: 3),
+                  Expanded(
+                    child: _buildTile(
+                      context,
+                      index: 3,
+                      extraCountOverlay: extraCount,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

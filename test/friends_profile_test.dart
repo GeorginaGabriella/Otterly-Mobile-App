@@ -8,11 +8,15 @@ import 'package:otterly/models/friend_profile_model.dart';
 import 'package:otterly/models/user_model.dart';
 import 'package:otterly/providers/auth_provider.dart';
 import 'package:otterly/providers/social_profile_provider.dart';
+import 'package:otterly/screens/auth/login_screen.dart';
 import 'package:otterly/screens/friends/friends_screen.dart';
 import 'package:otterly/screens/home/home_screen.dart';
 import 'package:otterly/screens/navigation/main_navigation.dart';
 import 'package:otterly/screens/profile/edit_profile_screen.dart';
 import 'package:otterly/screens/profile/profile_screen.dart';
+import 'package:otterly/screens/splash/splash_screen.dart';
+import 'package:otterly/services/auth_service.dart';
+import 'package:otterly/services/storage_service.dart';
 import 'package:otterly/widgets/media/post_composer_sheet.dart';
 import 'package:otterly/widgets/media/post_media_gallery_widget.dart';
 import 'package:otterly/widgets/media/post_video_player_widget.dart';
@@ -148,6 +152,39 @@ void main() {
       await notifier.deleteProfilePost(createdPost.id);
       state = container.read(socialProfileProvider);
       expect(state.myPosts.length, initialMyPosts);
+    });
+
+    test('AuthService persists login session and restores current user', () async {
+      final authService = AuthService();
+      final storageService = StorageService();
+
+      final err = await authService.register(
+        fullName: 'Felicia Angeline',
+        nim: '535250029',
+        email: 'felicia@stu.untar.ac.id',
+        password: 'password123',
+        faculty: 'Faculty of Information Technology',
+        studyProgram: 'Informatics',
+        entryYear: '2025',
+        avatar: AppConstants.pinkAvatarPath,
+      );
+      expect(err, isNull);
+
+      final loggedIn = await authService.login(
+        email: 'felicia@stu.untar.ac.id',
+        password: 'password123',
+        rememberMe: true,
+      );
+      expect(loggedIn, isNotNull);
+      expect(await storageService.getSession(), loggedIn!.id);
+
+      final restored = await authService.getCurrentUser();
+      expect(restored?.id, loggedIn.id);
+      expect(restored?.email, 'felicia@stu.untar.ac.id');
+
+      await authService.logout();
+      expect(await storageService.getSession(), isNull);
+      expect(await authService.getCurrentUser(), isNull);
     });
   });
 
@@ -437,6 +474,59 @@ void main() {
 
       expect(find.byType(ProfileScreen), findsOneWidget);
       expect(find.text('Edit Profile'), findsOneWidget);
+    });
+
+    testWidgets('SplashScreen restores active login session straight to MainNavigation', (tester) async {
+      await tester.runAsync(() async {
+        final authService = AuthService();
+        await authService.register(
+          fullName: 'Felicia Session',
+          nim: '535250099',
+          email: 'session@stu.untar.ac.id',
+          password: 'password123',
+          faculty: 'Faculty of Information Technology',
+          studyProgram: 'Informatics',
+          entryYear: '2025',
+          avatar: AppConstants.pinkAvatarPath,
+        );
+        await authService.login(
+          email: 'session@stu.untar.ac.id',
+          password: 'password123',
+          rememberMe: true,
+        );
+      });
+
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SplashScreen(),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byType(MainNavigation), findsOneWidget);
+      expect(container.read(authProvider)?.fullName, 'Felicia Session');
+    });
+
+    testWidgets('LoginScreen defaults Remember Me to true', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: LoginScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
+      expect(checkbox.value, isTrue);
     });
   });
 }

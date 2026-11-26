@@ -367,7 +367,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: RefreshIndicator(
           color: const Color(0xFFE23C64),
           onRefresh: _refreshFeed,
-          child: ListView(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 620),
+              child: ListView(
             padding: const EdgeInsets.all(18),
             children: [
               HomeHeaderWidget(
@@ -555,6 +559,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               const SizedBox(height: 20),
             ],
+          ),
+            ),
           ),
         ),
       ),

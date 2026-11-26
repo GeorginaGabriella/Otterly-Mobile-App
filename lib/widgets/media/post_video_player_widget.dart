@@ -188,28 +188,45 @@ class _PostVideoPlayerWidgetState extends State<PostVideoPlayerWidget> {
         ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
 
+    final videoRatio = _isInitialized &&
+            _controller != null &&
+            _controller!.value.aspectRatio > 0
+        ? _controller!.value.aspectRatio
+        : 16 / 9;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
-      child: Container(
-        height: widget.height,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.textDark,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: widget.allowFullscreen ? 340 : 440,
         ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (_isInitialized && _controller != null)
-              Center(
-                child: AspectRatio(
-                  aspectRatio: _controller!.value.aspectRatio == 0
-                      ? 16 / 9
-                      : _controller!.value.aspectRatio,
-                  child: VideoPlayer(_controller!),
-                ),
-              )
+        child: AspectRatio(
+          aspectRatio: videoRatio,
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.textDark,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                if (_isInitialized && _controller != null)
+                  SizedBox.expand(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width: _controller!.value.size.width > 0
+                            ? _controller!.value.size.width
+                            : 640,
+                        height: _controller!.value.size.height > 0
+                            ? _controller!.value.size.height
+                            : 360,
+                        child: VideoPlayer(_controller!),
+                      ),
+                    ),
+                  )
             else
               Container(
                 decoration: const BoxDecoration(
@@ -394,6 +411,8 @@ class _PostVideoPlayerWidgetState extends State<PostVideoPlayerWidget> {
               ),
             ),
           ],
+        ),
+      ),
         ),
       ),
     );
