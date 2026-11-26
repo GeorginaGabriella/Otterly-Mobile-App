@@ -21,7 +21,7 @@ class PostImageView extends StatelessWidget {
   Widget build(BuildContext context) {
     if (path.startsWith('assets/')) {
       return Container(
-        color: AppColors.creamSoft,
+        color: AppColors.cream,
         child: Image.asset(
           path,
           fit: fit,
@@ -55,7 +55,7 @@ class PostImageView extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: AppColors.creamSoft,
+      color: AppColors.cream,
       child: const Center(
         child: Icon(
           Icons.image_not_supported_outlined,

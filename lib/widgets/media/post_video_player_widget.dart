@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../core/app_colors.dart';
-import '../../core/app_constants.dart';
 import 'video_controller_stub.dart'
     if (dart.library.io) 'video_controller_io.dart';
 
@@ -195,7 +194,7 @@ class _PostVideoPlayerWidgetState extends State<PostVideoPlayerWidget> {
         height: widget.height,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color(0xFF1F1418),
+          color: AppColors.textDark,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.border),
         ),
@@ -219,8 +218,8 @@ class _PostVideoPlayerWidgetState extends State<PostVideoPlayerWidget> {
                     end: Alignment.bottomRight,
                     colors: [
                       AppColors.burgundy,
-                      Color(0xFF561224),
-                      Color(0xFF28121A),
+                      AppColors.pink,
+                      AppColors.coral,
                     ],
                   ),
                 ),
@@ -228,16 +227,10 @@ class _PostVideoPlayerWidgetState extends State<PostVideoPlayerWidget> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset(
-                        AppConstants.brandMarkPath,
-                        width: 54,
-                        height: 54,
-                        color: AppColors.cream.withValues(alpha: 0.9),
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.videocam_rounded,
-                          color: AppColors.cream,
-                          size: 42,
-                        ),
+                      const Icon(
+                        Icons.videocam_rounded,
+                        color: AppColors.cream,
+                        size: 46,
                       ),
                       const SizedBox(height: 8),
                       Text(

@@ -89,21 +89,6 @@ class ProfileHeaderWidget extends StatelessWidget {
               ),
             ),
           ),
-          if (coverImagePath == null || coverImagePath!.isEmpty)
-            Positioned(
-              right: 18,
-              bottom: 10,
-              child: Opacity(
-                opacity: 0.24,
-                child: Image.asset(
-                  AppConstants.brandMarkPath,
-                  width: 66,
-                  height: 66,
-                  color: AppColors.white,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-              ),
-            ),
           Positioned(
             left: 16,
             top: 14,

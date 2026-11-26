@@ -649,7 +649,7 @@ class _PostComposerSheetState extends State<PostComposerSheet> {
                   _buildToolbarButton(
                     icon: Icons.photo_library_rounded,
                     label: 'Photo',
-                    color: AppColors.success,
+                    color: AppColors.pink,
                     onTap: _pickPhotos,
                   ),
                   _buildToolbarButton(
@@ -661,7 +661,7 @@ class _PostComposerSheetState extends State<PostComposerSheet> {
                   _buildToolbarButton(
                     icon: Icons.collections_rounded,
                     label: 'Campus Media',
-                    color: AppColors.pink,
+                    color: AppColors.yellow,
                     onTap: _showSampleMediaPicker,
                   ),
                   _buildToolbarButton(

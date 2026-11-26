@@ -34,12 +34,12 @@ class CoverPresetTheme {
     CoverPresetTheme(
       id: 'golden',
       label: 'Golden Cream',
-      gradientColors: [Color(0xFFF09819), AppColors.yellow, AppColors.cream],
+      gradientColors: [AppColors.coral, AppColors.yellow, AppColors.cream],
     ),
     CoverPresetTheme(
       id: 'berry',
       label: 'Campus Berry',
-      gradientColors: [Color(0xFF6B1028), AppColors.burgundy, AppColors.pink],
+      gradientColors: [AppColors.burgundy, AppColors.pink, AppColors.cream],
     ),
   ];
 

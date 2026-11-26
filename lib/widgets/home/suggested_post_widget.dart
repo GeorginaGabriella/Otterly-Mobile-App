@@ -29,7 +29,7 @@ class SuggestedPostWidget extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: const Color(0xFFFCEDB8),
+              backgroundColor: const Color(0xFFFCEDD8),
               child: Icon(icon, color: const Color(0xFFB0183D)),
             ),
             const SizedBox(width: 12),

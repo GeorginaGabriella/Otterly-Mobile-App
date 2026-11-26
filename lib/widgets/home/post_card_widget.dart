@@ -133,7 +133,7 @@ class PostCardWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: const Color(0xFFFCEDB8),
+              color: const Color(0xFFFCEDD8),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Text(

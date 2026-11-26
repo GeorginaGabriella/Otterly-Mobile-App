@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
-  static const Color cream = Color(0xFFFCEDB8);
-  static const Color creamSoft = Color(0xFFFCEDD8);
+  static const Color cream = Color(0xFFFCEDD8);
   static const Color yellow = Color(0xFFFFD464);
   static const Color coral = Color(0xFFFF5E5E);
   static const Color pink = Color(0xFFE23C64);

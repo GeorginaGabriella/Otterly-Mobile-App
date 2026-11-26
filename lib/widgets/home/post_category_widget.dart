@@ -40,7 +40,7 @@ class PostCategoryWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFFE23C64)
-                    : const Color(0xFFFCEDB8),
+                    : const Color(0xFFFCEDD8),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
