@@ -5,6 +5,7 @@ import '../models/user_model.dart';
 class StorageService {
   static const String _usersKey = 'otterly_users';
   static const String _sessionKey = 'otterly_session';
+  static const String _fallbackCredentialPrefix = 'otterly_cred_';
 
   Future<List<UserModel>> getUsers() async {
     final prefs = await SharedPreferences.getInstance();
@@ -57,5 +58,20 @@ class StorageService {
   Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sessionKey);
+  }
+
+  Future<void> saveFallbackCredential(String userId, String credential) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('$_fallbackCredentialPrefix$userId', credential);
+  }
+
+  Future<String?> getFallbackCredential(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('$_fallbackCredentialPrefix$userId');
+  }
+
+  Future<void> deleteFallbackCredential(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('$_fallbackCredentialPrefix$userId');
   }
 }

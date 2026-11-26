@@ -84,19 +84,27 @@ class AuthService {
     );
 
     try {
-      await _secureStorage.write(
-        key: '$_credentialPrefix$id',
-        value: credential,
-      );
+      try {
+        await _secureStorage.write(
+          key: '$_credentialPrefix$id',
+          value: credential,
+        );
+      } catch (_) {
+        // Fallback to SharedPreferences on platforms without secure storage support.
+      }
+      await _storage.saveFallbackCredential(id, credential);
 
       users.add(user);
       await _storage.saveUsers(users);
 
       return null;
     } catch (_) {
-      await _secureStorage.delete(
-        key: '$_credentialPrefix$id',
-      );
+      try {
+        await _secureStorage.delete(
+          key: '$_credentialPrefix$id',
+        );
+      } catch (_) {}
+      await _storage.deleteFallbackCredential(id);
       return 'Unable to save account. Please try again.';
     }
   }
@@ -123,9 +131,16 @@ class AuthService {
       return null;
     }
 
-    final storedCredential = await _secureStorage.read(
-      key: '$_credentialPrefix${matchedUser.id}',
-    );
+    String? storedCredential;
+    try {
+      storedCredential = await _secureStorage.read(
+        key: '$_credentialPrefix${matchedUser.id}',
+      );
+    } catch (_) {
+      storedCredential = null;
+    }
+    storedCredential ??=
+        await _storage.getFallbackCredential(matchedUser.id);
 
     if (storedCredential == null) {
       return null;

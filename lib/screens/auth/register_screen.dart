@@ -303,7 +303,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
+          builder: (_) => LoginScreen(
+            initialEmail: _emailController.text.trim(),
+          ),
         ),
       );
     } catch (e) {
