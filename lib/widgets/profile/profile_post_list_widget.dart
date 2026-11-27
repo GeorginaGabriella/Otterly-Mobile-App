@@ -16,6 +16,7 @@ class ProfilePostListWidget extends StatelessWidget {
   final VoidCallback? onCreatePost;
   final bool showSavedTab;
   final bool isLockedPrivateProfile;
+  final bool isOwnProfile;
 
   const ProfilePostListWidget({
     super.key,
@@ -30,6 +31,7 @@ class ProfilePostListWidget extends StatelessWidget {
     this.onCreatePost,
     this.showSavedTab = true,
     this.isLockedPrivateProfile = false,
+    this.isOwnProfile = true,
   });
 
   Widget _buildTabButton({
@@ -136,7 +138,9 @@ class ProfilePostListWidget extends StatelessWidget {
             child: Icon(
               isSavedView
                   ? Icons.bookmark_border_rounded
-                  : Icons.post_add_rounded,
+                  : isOwnProfile
+                      ? Icons.post_add_rounded
+                      : Icons.article_outlined,
               color: AppColors.burgundy,
               size: 26,
             ),
@@ -154,14 +158,16 @@ class ProfilePostListWidget extends StatelessWidget {
           Text(
             isSavedView
                 ? 'Bookmark campus posts you love so you can revisit them anytime.'
-                : 'Share updates, notes, or campus moments with your UNTAR friends!',
+                : isOwnProfile
+                    ? 'Share updates, notes, or campus moments with your UNTAR friends!'
+                    : "This student hasn't shared any posts yet.",
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 12.5,
               color: AppColors.textSecondary,
             ),
           ),
-          if (!isSavedView && onCreatePost != null) ...[
+          if (isOwnProfile && !isSavedView && onCreatePost != null) ...[
             const SizedBox(height: 14),
             ElevatedButton.icon(
               onPressed: onCreatePost,

@@ -17,9 +17,11 @@ import 'package:otterly/screens/profile/profile_screen.dart';
 import 'package:otterly/screens/splash/splash_screen.dart';
 import 'package:otterly/services/auth_service.dart';
 import 'package:otterly/services/storage_service.dart';
+import 'package:otterly/widgets/friends/blocked_users_sheet_widget.dart';
 import 'package:otterly/widgets/media/post_composer_sheet.dart';
 import 'package:otterly/widgets/media/post_media_gallery_widget.dart';
 import 'package:otterly/widgets/media/post_video_player_widget.dart';
+import 'package:otterly/widgets/profile/profile_post_list_widget.dart';
 
 void main() {
   setUp(() {
@@ -527,6 +529,129 @@ void main() {
 
       final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
       expect(checkbox.value, isTrue);
+    });
+
+    test('mutualFriendsFor strictly intersects connected friends with target mutuals', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(socialProfileProvider);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      final state = container.read(socialProfileProvider);
+      final connectedIds = state.friends.map((f) => f.id).toSet();
+
+      for (final student in state.students) {
+        final mutuals = state.mutualFriendsFor(student);
+        for (final mutual in mutuals) {
+          expect(connectedIds.contains(mutual.id), isTrue);
+          expect(student.mutualFriendIds.contains(mutual.id), isTrue);
+        }
+      }
+    });
+
+    testWidgets('EditProfileScreen persists turning Private Account OFF without race', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(socialProfileProvider);
+      await tester.pumpAndSettle();
+
+      await container.read(socialProfileProvider.notifier).updatePrivacySettings(
+            isPrivateAccount: true,
+            allowRequestsFromMutualsOnly: true,
+          );
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: EditProfileScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final privacySwitch = find.byType(SwitchListTile);
+      await tester.ensureVisible(privacySwitch);
+      expect(tester.widget<SwitchListTile>(privacySwitch).value, isTrue);
+
+      // Toggle Private Account OFF and save.
+      await tester.tap(privacySwitch);
+      await tester.pumpAndSettle();
+      expect(tester.widget<SwitchListTile>(privacySwitch).value, isFalse);
+
+      await tester.ensureVisible(find.text('Save Changes'));
+      await tester.tap(find.text('Save Changes'));
+      await tester.pumpAndSettle();
+
+      final updatedSocial = container.read(socialProfileProvider);
+      expect(updatedSocial.privacy.isPrivateAccount, isFalse);
+      expect(updatedSocial.privacy.allowRequestsFromMutualsOnly, isTrue);
+      expect(container.read(authProvider)?.isPrivate, isFalse);
+    });
+
+    testWidgets('BlockedUsersSheetWidget unblocks user and shows visible feedback', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(socialProfileProvider);
+      await tester.pumpAndSettle();
+
+      final target = container.read(socialProfileProvider).friends.first;
+      await container.read(socialProfileProvider.notifier).blockUser(target.id);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: BlockedUsersSheetWidget(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(target.fullName), findsOneWidget);
+      await tester.tap(find.text('Unblock'));
+      await tester.pumpAndSettle();
+
+      expect(
+        container.read(socialProfileProvider).blockedUsers.any((u) => u.id == target.id),
+        isFalse,
+      );
+      expect(find.text('Unblocked ${target.fullName}.'), findsOneWidget);
+      expect(find.text('No Blocked Users'), findsOneWidget);
+    });
+
+    testWidgets('ProfilePostListWidget shows other-student empty copy cleanly', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ProfilePostListWidget(
+              myPosts: const [],
+              savedPosts: const [],
+              selectedTabIndex: 0,
+              onTabChanged: (_) {},
+              onToggleLike: (_) {},
+              onToggleSave: (_) {},
+              showSavedTab: false,
+              isOwnProfile: false,
+              onCreatePost: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('No Posts Yet'), findsOneWidget);
+      expect(
+        find.text("This student hasn't shared any posts yet."),
+        findsOneWidget,
+      );
+      expect(find.text('Create First Post'), findsNothing);
     });
   });
 }

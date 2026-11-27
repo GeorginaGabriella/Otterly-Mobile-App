@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/app_colors.dart';
 import '../../models/friend_profile_model.dart';
 import '../../providers/social_profile_provider.dart';
+import '../../widgets/friends/blocked_users_sheet_widget.dart';
 import '../../widgets/friends/friend_request_card_widget.dart';
 import '../../widgets/friends/friend_user_card_widget.dart';
 import '../../widgets/friends/mutual_friends_sheet_widget.dart';
@@ -47,8 +48,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
       vsync: this,
       initialIndex: clampedIndex,
     );
-    _discoverSearchController.text =
-        ref.read(socialProfileProvider).searchQuery;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(socialProfileProvider.notifier).clearFilters();
+      _discoverSearchController.clear();
+    });
   }
 
   @override
@@ -163,97 +167,12 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     }
   }
 
-  void _showBlockedUsersSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) => Consumer(
-        builder: (context, ref, _) {
-          final blocked = ref.watch(socialProfileProvider).blockedUsers;
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Blocked Students',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.burgundy,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (blocked.isEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Text(
-                        'You have not blocked anyone.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
-                    )
-                  else
-                    Flexible(
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: blocked.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: (_, index) {
-                          final student = blocked[index];
-                          return ListTile(
-                            tileColor: AppColors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              side: const BorderSide(color: AppColors.border),
-                            ),
-                            leading: CircleAvatar(
-                              backgroundColor: AppColors.cream,
-                              backgroundImage: AssetImage(student.avatar),
-                            ),
-                            title: Text(
-                              student.fullName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            subtitle: Text('@${student.username}'),
-                            trailing: TextButton(
-                              onPressed: () async {
-                                await ref
-                                    .read(socialProfileProvider.notifier)
-                                    .unblockUser(student.id);
-                                if (mounted) {
-                                  _showSnack(
-                                    'Unblocked ${student.fullName}.',
-                                    background: AppColors.success,
-                                  );
-                                }
-                              },
-                              child: const Text('Unblock'),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
+  Widget _centeredTab(Widget child) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 620),
+        child: child,
       ),
     );
   }
@@ -302,6 +221,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
       color: AppColors.pink,
       onRefresh: notifier.refresh,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         children: [
           TextField(
@@ -398,77 +318,108 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
                 itemBuilder: (context, index) {
                   final student = suggestions[index];
                   final mutualCount = state.mutualFriendsFor(student).length;
-                  return Container(
+                  return SizedBox(
                     width: 168,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
+                    child: Material(
                       color: AppColors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: InkWell(
-                      onTap: () => _openStudentProfile(student.id),
-                      child: Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundColor: AppColors.cream,
-                            backgroundImage: AssetImage(student.avatar),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            student.fullName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13.5,
-                              color: AppColors.textDark,
-                            ),
-                          ),
-                          Text(
-                            student.studyProgram,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            mutualCount > 0
-                                ? '$mutualCount mutual friend${mutualCount > 1 ? 's' : ''}'
-                                : 'Angkatan ${student.entryYear}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.burgundy,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const Spacer(),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () =>
-                                  _handleCardPrimaryAction(student),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.pink,
-                                foregroundColor: AppColors.white,
-                                elevation: 0,
-                                minimumSize: const Size(0, 34),
-                                padding: EdgeInsets.zero,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(11),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        side: const BorderSide(color: AppColors.border),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () => _openStudentProfile(student.id),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor: AppColors.cream,
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    student.avatar,
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.pets,
+                                      color: AppColors.burgundy,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              child: const Text(
-                                'Add Friend',
-                                style: TextStyle(fontSize: 12),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      student.fullName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13.5,
+                                        color: AppColors.textDark,
+                                      ),
+                                    ),
+                                  ),
+                                  if (student.isVerified) ...[
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.verified_rounded,
+                                      size: 14,
+                                      color: AppColors.pink,
+                                    ),
+                                  ],
+                                ],
                               ),
-                            ),
+                              Text(
+                                student.studyProgram,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                mutualCount > 0
+                                    ? '$mutualCount mutual friend${mutualCount > 1 ? 's' : ''}'
+                                    : 'Angkatan ${student.entryYear}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.burgundy,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const Spacer(),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: () =>
+                                      _handleCardPrimaryAction(student),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.pink,
+                                    foregroundColor: AppColors.white,
+                                    elevation: 0,
+                                    minimumSize: const Size(0, 34),
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(11),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Add Friend',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   );
@@ -565,10 +516,45 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     final incoming = state.incomingRequests;
     final sent = state.sentRequests;
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Row(
+    return RefreshIndicator(
+      color: AppColors.pink,
+      onRefresh: notifier.refresh,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (state.privacy.allowRequestsFromMutualsOnly) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.cream.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.group_outlined,
+                    size: 18,
+                    color: AppColors.burgundy,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Mutual-friends filter is active in Privacy Settings.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.burgundy,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          Row(
           children: [
             const Expanded(
               child: Text(
@@ -689,7 +675,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
               onBlockUser: () => _confirmBlockUser(student),
             );
           }),
-      ],
+        ],
+      ),
     );
   }
 
@@ -703,8 +690,12 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
           friend.studyProgram.toLowerCase().contains(query);
     }).toList();
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return RefreshIndicator(
+      color: AppColors.pink,
+      onRefresh: notifier.refresh,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
       children: [
         TextField(
           controller: _friendsSearchController,
@@ -809,7 +800,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
               onBlockUser: () => _confirmBlockUser(student),
             );
           }),
-      ],
+        ],
+      ),
     );
   }
 
@@ -833,7 +825,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
         actions: [
           IconButton(
             tooltip: 'Blocked Users',
-            onPressed: _showBlockedUsersSheet,
+            onPressed: () => BlockedUsersSheetWidget.show(context),
             icon: const Icon(
               Icons.block_rounded,
               color: AppColors.burgundy,
@@ -857,9 +849,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildDiscoverTab(socialState),
-          _buildRequestsTab(socialState),
-          _buildMyFriendsTab(socialState),
+          _centeredTab(_buildDiscoverTab(socialState)),
+          _centeredTab(_buildRequestsTab(socialState)),
+          _centeredTab(_buildMyFriendsTab(socialState)),
         ],
       ),
     );

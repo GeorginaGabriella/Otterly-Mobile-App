@@ -69,7 +69,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   void initState() {
     super.initState();
     final user = ref.read(authProvider) ?? buildFallbackDemoUser();
-    final privacy = ref.read(socialProfileProvider).privacy;
+    final socialState = ref.read(socialProfileProvider);
+    final privacy = socialState.privacy;
 
     _nameController = TextEditingController(text: user.fullName);
     _usernameController = TextEditingController(text: user.effectiveUsername);
@@ -87,7 +88,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _selectedCoverPreset = user.coverPreset;
     _customProfileImagePath = user.customProfileImagePath;
     _coverImagePath = user.coverImagePath;
-    _isPrivate = privacy.isPrivateAccount || user.isPrivate;
+    _isPrivate = socialState.isLoading
+        ? user.isPrivate
+        : privacy.isPrivateAccount;
   }
 
   @override
@@ -154,10 +157,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       isPrivate: _isPrivate,
     );
 
-    await ref.read(authProvider.notifier).updateProfile(updatedUser);
     await ref.read(socialProfileProvider.notifier).updatePrivacySettings(
           isPrivateAccount: _isPrivate,
         );
+    await ref.read(authProvider.notifier).updateProfile(updatedUser);
 
     if (!mounted) return;
     setState(() {
@@ -450,12 +453,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(18),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(18),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildCoverSection(),
                 const SizedBox(height: 16),
@@ -600,7 +607,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   onPressed: _isSaving ? null : _saveProfile,
                 ),
                 const SizedBox(height: 20),
-              ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),

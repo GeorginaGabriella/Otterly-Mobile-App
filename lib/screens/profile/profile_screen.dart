@@ -5,6 +5,7 @@ import '../../models/friend_profile_model.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/social_profile_provider.dart';
+import '../../widgets/friends/blocked_users_sheet_widget.dart';
 import '../../widgets/friends/mutual_friends_sheet_widget.dart';
 import '../../widgets/media/post_composer_sheet.dart';
 import '../../widgets/profile/profile_header_widget.dart';
@@ -169,95 +170,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _showBlockedUsersSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) => Consumer(
-        builder: (context, ref, _) {
-          final blocked = ref.watch(socialProfileProvider).blockedUsers;
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Blocked Accounts',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.burgundy,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (blocked.isEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Text(
-                        'No blocked students.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
-                    )
-                  else
-                    Flexible(
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: blocked.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: (_, index) {
-                          final student = blocked[index];
-                          return ListTile(
-                            tileColor: AppColors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              side: const BorderSide(color: AppColors.border),
-                            ),
-                            leading: CircleAvatar(
-                              backgroundColor: AppColors.cream,
-                              backgroundImage: AssetImage(student.avatar),
-                            ),
-                            title: Text(student.fullName),
-                            subtitle: Text('@${student.username}'),
-                            trailing: TextButton(
-                              onPressed: () async {
-                                await ref
-                                    .read(socialProfileProvider.notifier)
-                                    .unblockUser(student.id);
-                                if (mounted) {
-                                  _showSnack(
-                                    'Unblocked ${student.fullName}.',
-                                    background: AppColors.success,
-                                  );
-                                }
-                              },
-                              child: const Text('Unblock'),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   void _showPrivacySheet() {
     showModalBottomSheet<void>(
       context: context,
@@ -290,7 +202,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     notifier.updatePrivacySettings(showActivityStatus: val),
                 onManageBlockedUsers: () {
                   Navigator.pop(sheetContext);
-                  _showBlockedUsersSheet();
+                  BlockedUsersSheetWidget.show(this.context);
                 },
               ),
             ),
@@ -518,6 +430,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             isVerified: currentUser.isVerified,
             isPrivate: socialState.privacy.isPrivateAccount,
             isOwnProfile: true,
+            showOnlineBadge: socialState.privacy.showActivityStatus,
             onEditProfile: _openEditProfile,
             onOpenFriends: () => _openFriendsScreen(initialTabIndex: 0),
             onOpenPrivacy: _showPrivacySheet,
@@ -753,6 +666,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           onToggleSave: notifier.togglePostSave,
           showSavedTab: false,
           isLockedPrivateProfile: isLockedPrivate,
+          isOwnProfile: false,
         ),
       ],
     );

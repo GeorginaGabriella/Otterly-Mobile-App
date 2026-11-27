@@ -16,6 +16,7 @@ class ProfileHeaderWidget extends StatelessWidget {
   final bool isVerified;
   final bool isPrivate;
   final bool isOwnProfile;
+  final bool showOnlineBadge;
   final FriendshipStatus friendshipStatus;
   final bool isFollowing;
   final VoidCallback? onEditProfile;
@@ -39,6 +40,7 @@ class ProfileHeaderWidget extends StatelessWidget {
     this.isVerified = false,
     this.isPrivate = false,
     this.isOwnProfile = true,
+    this.showOnlineBadge = false,
     this.friendshipStatus = FriendshipStatus.none,
     this.isFollowing = false,
     this.onEditProfile,
@@ -165,45 +167,67 @@ class ProfileHeaderWidget extends StatelessWidget {
     final resolvedAsset =
         avatarAsset.isNotEmpty ? avatarAsset : AppConstants.pinkAvatarPath;
 
-    return Container(
-      width: 96,
-      height: 96,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.pink, width: 2.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.burgundy.withValues(alpha: 0.14),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 96,
+          height: 96,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.pink, width: 2.5),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.burgundy.withValues(alpha: 0.14),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipOval(
-        child: hasCustom
-            ? buildAdaptiveFileImage(
-                customProfileImagePath!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Image.asset(
-                  resolvedAsset,
-                  fit: BoxFit.cover,
-                ),
-              )
-            : Image.asset(
-                resolvedAsset,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const CircleAvatar(
-                  backgroundColor: AppColors.cream,
-                  child: Icon(
-                    Icons.pets,
-                    color: AppColors.burgundy,
-                    size: 38,
+          child: ClipOval(
+            child: hasCustom
+                ? buildAdaptiveFileImage(
+                    customProfileImagePath!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Image.asset(
+                      resolvedAsset,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Image.asset(
+                    resolvedAsset,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const CircleAvatar(
+                      backgroundColor: AppColors.cream,
+                      child: Icon(
+                        Icons.pets,
+                        color: AppColors.burgundy,
+                        size: 38,
+                      ),
+                    ),
                   ),
+          ),
+        ),
+        if (showOnlineBadge)
+          Positioned(
+            right: 4,
+            bottom: 4,
+            child: Tooltip(
+              message: 'Active status visible',
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: AppColors.success,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.white, width: 2.5),
                 ),
               ),
-      ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -213,12 +237,17 @@ class ProfileHeaderWidget extends StatelessWidget {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: onEditProfile,
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Edit Profile'),
+            icon: const Icon(Icons.edit_outlined, size: 17),
+            label: const Text(
+              'Edit Profile',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.pink,
               foregroundColor: AppColors.white,
               minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -229,13 +258,18 @@ class ProfileHeaderWidget extends StatelessWidget {
         Expanded(
           child: OutlinedButton.icon(
             onPressed: onOpenFriends,
-            icon: const Icon(Icons.people_outline_rounded, size: 18),
-            label: const Text('Find Friends'),
+            icon: const Icon(Icons.people_outline_rounded, size: 17),
+            label: const Text(
+              'Find Friends',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.burgundy,
               side: const BorderSide(color: AppColors.border, width: 1.4),
               backgroundColor: AppColors.white,
               minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -305,13 +339,18 @@ class ProfileHeaderWidget extends StatelessWidget {
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: onFriendAction,
-                icon: Icon(friendIcon, size: 18),
-                label: Text(friendLabel),
+                icon: Icon(friendIcon, size: 17),
+                label: Text(
+                  friendLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: friendBg,
                   foregroundColor: friendFg,
                   elevation: 0,
                   minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -328,6 +367,7 @@ class ProfileHeaderWidget extends StatelessWidget {
                   side: const BorderSide(color: AppColors.border),
                   backgroundColor: AppColors.white,
                   minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -343,9 +383,13 @@ class ProfileHeaderWidget extends StatelessWidget {
                     isFollowing
                         ? Icons.notifications_active_outlined
                         : Icons.add_rounded,
-                    size: 18,
+                    size: 17,
                   ),
-                  label: Text(isFollowing ? 'Following' : 'Follow'),
+                  label: Text(
+                    isFollowing ? 'Following' : 'Follow',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor:
                         isFollowing ? AppColors.pink : AppColors.burgundy,
@@ -355,6 +399,7 @@ class ProfileHeaderWidget extends StatelessWidget {
                       width: 1.3,
                     ),
                     minimumSize: const Size(0, 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

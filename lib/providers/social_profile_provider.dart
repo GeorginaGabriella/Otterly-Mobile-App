@@ -41,7 +41,7 @@ class SocialProfileState {
         .where((s) => s.friendshipStatus == FriendshipStatus.none)
         .toList();
     list.sort(
-      (a, b) => b.mutualFriendIds.length.compareTo(a.mutualFriendIds.length),
+      (a, b) => mutualFriendsFor(b).length.compareTo(mutualFriendsFor(a).length),
     );
     return list;
   }
@@ -95,9 +95,8 @@ class SocialProfileState {
           (student) =>
               student.id != target.id &&
               student.friendshipStatus != FriendshipStatus.blocked &&
-              (targetMutuals.contains(student.id) ||
-                  (connectedIds.contains(student.id) &&
-                      target.mutualFriendIds.contains(student.id))),
+              connectedIds.contains(student.id) &&
+              targetMutuals.contains(student.id),
         )
         .toList();
   }
@@ -164,17 +163,43 @@ class SocialProfileNotifier extends Notifier<SocialProfileState> {
 
   @override
   SocialProfileState build() {
-    final authUser = ref.watch(authProvider);
-    final effectiveUser = authUser ?? buildFallbackDemoUser();
+    final initialUser = ref.read(authProvider) ?? buildFallbackDemoUser();
     final loadEpoch = ++_stateEpoch;
 
-    Future.microtask(() => _loadForUser(effectiveUser, loadEpoch));
+    ref.listen<UserModel?>(authProvider, (prev, next) {
+      final targetUser = next ?? buildFallbackDemoUser();
+      final prevId = prev?.id;
+      if (prevId != targetUser.id || targetUser.id != state.activeUserId) {
+        final nextEpoch = ++_stateEpoch;
+        state = state.copyWith(activeUserId: targetUser.id, isLoading: true);
+        Future.microtask(() => _loadForUser(targetUser, nextEpoch));
+        return;
+      }
+
+      // Same user edited profile metadata; sync own post headers & privacy without reloading.
+      final syncedPosts = state.posts.map((post) {
+        if (!post.isOwnPost) return post;
+        return post.copyWith(
+          authorId: targetUser.id,
+          authorName: targetUser.fullName,
+          authorAvatar: targetUser.avatar,
+          faculty: targetUser.faculty,
+        );
+      }).toList();
+      state = state.copyWith(
+        posts: syncedPosts,
+        privacy: state.privacy.copyWith(isPrivateAccount: targetUser.isPrivate),
+      );
+      _service.savePosts(targetUser.id, syncedPosts);
+    });
+
+    Future.microtask(() => _loadForUser(initialUser, loadEpoch));
 
     return SocialProfileState(
-      activeUserId: effectiveUser.id,
+      activeUserId: initialUser.id,
       students: SocialConnectionService.seedStudents(),
-      posts: SocialConnectionService.seedPosts(effectiveUser),
-      privacy: SocialPrivacySettings(isPrivateAccount: effectiveUser.isPrivate),
+      posts: SocialConnectionService.seedPosts(initialUser),
+      privacy: SocialPrivacySettings(isPrivateAccount: initialUser.isPrivate),
       isLoading: true,
     );
   }
@@ -429,17 +454,25 @@ class SocialProfileNotifier extends Notifier<SocialProfileState> {
     state = state.copyWith(selectedFacultyFilter: faculty);
   }
 
+  void clearFilters() {
+    state = state.copyWith(
+      searchQuery: '',
+      selectedFacultyFilter: 'All',
+    );
+  }
+
   Future<void> updatePrivacySettings({
     bool? isPrivateAccount,
     bool? allowRequestsFromMutualsOnly,
     bool? showActivityStatus,
   }) async {
+    _stateEpoch++;
     final nextPrivacy = state.privacy.copyWith(
       isPrivateAccount: isPrivateAccount,
       allowRequestsFromMutualsOnly: allowRequestsFromMutualsOnly,
       showActivityStatus: showActivityStatus,
     );
-    state = state.copyWith(privacy: nextPrivacy);
+    state = state.copyWith(privacy: nextPrivacy, isLoading: false);
     await _service.savePrivacySettings(state.activeUserId, nextPrivacy);
 
     if (isPrivateAccount != null) {
